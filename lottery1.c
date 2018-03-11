@@ -100,14 +100,22 @@ void readFile(char* fileName){
 					printf("entre!1\n");
 					printf("Lei \n");
 					printf("%s\n", word );
+
+					int compareExp = strcmp(word,"Exp");
+					printf("Compare 1 \n");
+					printf("%d\n", compareExp );
+
+					int compareNoExp = strcmp(word,"NoExp");
+					printf("Compare 2 \n");
+					printf("%d\n", compareNoExp );
 					printf("sleeping...\n");
 					usleep(10000);
 
-					if (strcmp(word,"Exp")){
+					if (compareExp == 0){
 						printf("Exp enabled\n");
 						modeExp=1;
-					}else if(strcmp(word,"NoExp")){
-						printf("Exp disabled\n");
+					}else if(compareNoExp == 0){
+						printf("No expropiativo \n");
 						modeExp=0;
 					}
 					printf("sleeping...\n");
