@@ -5,7 +5,12 @@
 #include <time.h> 
 #include <unistd.h>
 #include <setjmp.h>
+<<<<<<< HEAD
 #include <time.h> 
+=======
+#include <time.h>
+#include <gtk/gtk.h>
+>>>>>>> a5c1d8aafca2f5ef899f00875b85fd9a3173c0b2
 
 struct Ticket {
 	char name[50];
@@ -30,12 +35,20 @@ struct Thread{
 	jmp_buf buff;
 	long pi;
 	int isFirstTime;
+<<<<<<< HEAD
 
 
 };
 
 void lottery (struct Thread* thread,int nThreads,int isExp);
 void readFile(char* fileName);
+=======
+};
+
+//Declaration functions
+void lottery (struct Thread* thread,int nThreads,int isExp, GtkWidget *grid);
+void readFile(char* fileName, GtkWidget *grid);
+>>>>>>> a5c1d8aafca2f5ef899f00875b85fd9a3173c0b2
 struct Thread* createThread(int* nWork,int* nTickets,char** names,long quantum,int modeExp,int nThreads);
 int myRandom(long max);
 int getFirst(struct Thread* thread,int nThreads);
@@ -44,6 +57,16 @@ int isFinish (struct Thread* thread,int nThreads);
 void calculatePi(struct Thread* thread,int index,int nThreads, int isExp);
 long sumTickets(struct Thread* thread,int nThreads,int oldIndex);
 int getThreadIndex(struct Thread* thread,int nThreads,int oldIndex);
+<<<<<<< HEAD
+=======
+void setScreen(float percentaje, int tid, GtkWidget *grid, int totalThreads, struct Thread* thread);
+
+
+//Declare variables
+static GtkWidget *title;
+static GtkWidget *lblThread;
+static GtkWidget *pgbThread;
+>>>>>>> a5c1d8aafca2f5ef899f00875b85fd9a3173c0b2
 
 // float parkmiller(float seed, float start, float end){
 // 	float a = (end-start)/2147483947;
@@ -54,7 +77,11 @@ int getThreadIndex(struct Thread* thread,int nThreads,int oldIndex);
 // }
 
 
+<<<<<<< HEAD
 int main(int argc, char const *argv[])
+=======
+int main(int argc, char **argv)
+>>>>>>> a5c1d8aafca2f5ef899f00875b85fd9a3173c0b2
 {
 	/* code */
 	float seed = 2;
@@ -72,6 +99,7 @@ int main(int argc, char const *argv[])
     //printf("My random number = %d\n", random);
     //int result = chooseTicket(tickets,random);
    	//printf("winner is %d\n",result);
+<<<<<<< HEAD
 
     readFile("threadFile");
 
@@ -79,6 +107,31 @@ int main(int argc, char const *argv[])
 }
 
 void readFile(char* fileName){
+=======
+    
+    //Se crea e inicializa la parte grafica
+    GtkWidget *window, *grid;
+    gtk_init(&argc, &argv);
+    
+    window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+    g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
+    
+    grid = gtk_grid_new();
+    gtk_window_set_title (GTK_WINDOW(window), "Scheduler");
+    //gtk_window_set_default_size(GTK_WINDOW(window), 600, 600);
+    gtk_container_add(GTK_CONTAINER(window), grid);
+
+    readFile("threadFile", grid);
+
+    
+    gtk_widget_show_all(window);
+    gtk_main();
+    
+	return 0;
+}
+
+void readFile(char* fileName, GtkWidget *grid){
+>>>>>>> a5c1d8aafca2f5ef899f00875b85fd9a3173c0b2
 	FILE *ifp;
 	struct Thread *thread;
 	char *mode = "r";
@@ -173,7 +226,11 @@ void readFile(char* fileName){
 	thread=createThread(nWork,nTickets,names,quantum,modeExp, nThreads);
 	//long totalTickets = sumTickets(nTickets,nThreads);
 
+<<<<<<< HEAD
 	lottery(thread,nThreads,modeExp);
+=======
+	lottery(thread,nThreads,modeExp, grid);
+>>>>>>> a5c1d8aafca2f5ef899f00875b85fd9a3173c0b2
 	for (int i = 0 ; i < nThreads;i++){
 		printf("thread[%d]=%d\n",i,thread[i].isFinish );
 	}
@@ -343,7 +400,36 @@ int getThreadIndex(struct Thread* thread,int nThreads,int oldIndex){
 	}
 }
 
+<<<<<<< HEAD
 void lottery (struct Thread* thread,int nThreads,int isExp){
+=======
+//Funcion que pinta los threads en la pantalla
+void setScreen(float percentaje, int tid, GtkWidget *grid, int totalThreads, struct Thread* thread){
+    title = gtk_label_new("Threads");
+    gtk_grid_attach(GTK_GRID(grid), title, 1,0,1,1); //Grid, componente, columna, fila, width, height
+    
+    for (int i=0; i<totalThreads; i++){
+        lblThread = gtk_label_new("Tread:");
+        pgbThread = gtk_progress_bar_new();
+        
+        
+        gtk_grid_attach(GTK_GRID(grid), lblThread, 0,i+1,1,1);
+        char buffer1[25];
+        snprintf(buffer1, sizeof(buffer1), "Thread: %i", i);
+        gtk_label_set_text(GTK_LABEL(lblThread), buffer1);
+        gtk_grid_attach(GTK_GRID(grid), pgbThread, 1,i+1,1,1);
+        if (tid == i){
+            //gtk_progress_bar_set_text(GTK_PROGRESS_BAR(pgbThread),"Valor de pi: %f", 3.14151683378);
+            //gtk_progress_bar_set_show_text(GTK_PROGRESS_BAR(data), TRUE);
+            gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(pgbThread), percentaje);
+        }
+        
+    }
+    
+}
+
+void lottery (struct Thread* thread,int nThreads,int isExp, GtkWidget *grid){
+>>>>>>> a5c1d8aafca2f5ef899f00875b85fd9a3173c0b2
 	if (nThreads>0){
 		
 		int threadIndex=-1;
@@ -358,11 +444,19 @@ void lottery (struct Thread* thread,int nThreads,int isExp){
 			
 			thread[threadIndex].isFirstTime=0;
 			calculatePi(thread,threadIndex,nThreads,isExp);
+<<<<<<< HEAD
 			
+=======
+			setScreen(0.44,threadIndex,grid,nThreads, thread);
+>>>>>>> a5c1d8aafca2f5ef899f00875b85fd9a3173c0b2
 		
 
 			// printf("entre!\n");
 			// usleep(3000000);
 		// }
 	}
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> a5c1d8aafca2f5ef899f00875b85fd9a3173c0b2
