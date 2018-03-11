@@ -28,22 +28,31 @@ struct Thread{
 	long quantum;
 	int isExp;
 	jmp_buf buff;
-	long pi;
+	float pi;
 	int isFirstTime;
+	int keep;
+	int k;
 
 
 };
+struct Thread* thread;
+int threadIndex;
+int nThreads;
+time_t t;
+int last;
 
-void lottery (struct Thread* thread,int nThreads,int isExp);
+
+void lottery ();
 void readFile(char* fileName);
 struct Thread* createThread(int* nWork,int* nTickets,char** names,long quantum,int modeExp,int nThreads);
 int myRandom(long max);
 int getFirst(struct Thread* thread,int nThreads);
-int chooseThread(struct Thread* thread,int nThreads, long ticketNumber,int oldIndex);
-int isFinish (struct Thread* thread,int nThreads);
-void calculatePi(struct Thread* thread,int index,int nThreads, int isExp);
+int chooseThread(long ticketNumber);
+int NisFinish ();
+void calculatePi();
 long sumTickets(struct Thread* thread,int nThreads,int oldIndex);
-int getThreadIndex(struct Thread* thread,int nThreads,int oldIndex);
+int getThreadIndex();
+int findLast();
 
 // float parkmiller(float seed, float start, float end){
 // 	float a = (end-start)/2147483947;
@@ -80,11 +89,10 @@ int main(int argc, char const *argv[])
 
 void readFile(char* fileName){
 	FILE *ifp;
-	struct Thread *thread;
 	char *mode = "r";
 	int c;
 	int modeExp=0;
-	int nThreads=0;
+	nThreads=0;
 	int* nTickets;
 	int nt=0;
 	int* nWork;
@@ -94,7 +102,8 @@ void readFile(char* fileName){
 	int quatumIndex=0;
 	char** names;
 	ifp = fopen(fileName, mode);
-	
+	threadIndex =-1;
+	last=0;
 		if (ifp!=NULL){
 		c=fgetc(ifp);
 		int wordSize = 1;
@@ -184,8 +193,10 @@ long sumTickets(struct Thread* thread,int nThreads,int oldIndex){
 		long sum=0;
 		printf("inside sumTickets, oldIndex = %d\n",oldIndex );
 		for (int i = 0; i < nThreads;i++){
-			printf("thread.isFinish=%d\n", thread[i].isFinish);
-			if (!thread[i].isFinish||i!=oldIndex){
+			
+			printf("thread.isFinish=%d, index = %d\n", thread[i].isFinish,i);
+
+			if ((!thread[i].isFinish && i!=oldIndex)){
 				sum+=thread[i].nTickets;
 				printf("sumtickets %lu\n",sum );
 			}
@@ -210,13 +221,15 @@ struct Thread* createThread(int* nWork,int* nTickets,char** names,long quantum,i
 			
 			strcpy(threads[x].name,names[x]);
 			threads[x].nTickets = nTickets[x];
-			threads[x].nWorks = 50*nWork[x];
+			threads[x].nWorks = 50*nWork[x]; // remember here!!!
 			threads[x].isWorking =1;
 			threads[x].isFinish=0;
 			threads[x].quantum = quantum;
 			threads[x].isExp = modeExp;
 			threads[x].pi=0;
 			threads[x].isFirstTime=1;
+			threads[x].keep=1;
+			threads[x].k=0;
 				
 		}
 		return threads;
@@ -233,7 +246,7 @@ def park_miller(seed,start,end):
 */
 
 int myRandom(long max){
-	time_t t;
+	
 	printf("long max= %lu\n",max );
 	srand((unsigned) time(&t));
 	int randn = rand();
@@ -249,9 +262,9 @@ int getFirst(struct Thread* thread,int nThreads){
 	}
 }
 
-int chooseThread(struct Thread* thread,int nThreads, long ticketNumber,int oldIndex){
+int chooseThread(long ticketNumber){
 	int ticketPointer = 0;
-	int firstThread = getFirst(thread,nThreads);
+	//int firstThread = getFirst(thread,nThreads);
 	// if (ticketNumber<= thread[firstThread].nTickets){
 	// 	return firstThread;
 	// }else{
@@ -259,8 +272,8 @@ int chooseThread(struct Thread* thread,int nThreads, long ticketNumber,int oldIn
 	// }
 
 	for (int i = 0 ; i < nThreads;i++){
-			//
-			if (!thread[i].isFinish||i !=oldIndex){
+			printf("Im at index= %d\n",i );
+			if ((!thread[i].isFinish && i !=threadIndex)){
 				int before = ticketPointer;
 				printf("before=%d\n",before );
 				ticketPointer+=thread[i].nTickets;
@@ -275,94 +288,170 @@ int chooseThread(struct Thread* thread,int nThreads, long ticketNumber,int oldIn
 }
 
 
-int isFinish (struct Thread* thread,int nThreads){
+int NisFinish (){
+	int count = 0;
 	for (int i = 0; i < nThreads;i++){
 		if (!thread[i].isFinish){
-			return 0 ;
+			count++ ;
 		}
 	}
-	return 1;
+	return count;
 }
 
+int findLast(){
+	for (int i = 0; i < nThreads;i++){
+		if (!thread[i].isFinish){
+			return i;
+		}
+	}
+}
 
-void calculatePi(struct Thread* thread,int index,int nThreads, int isExp){
+void calculatePi(){
 	float pi = 0;
 	clock_t start_t, end_t, total_t=0;
 	int r ;
-	for (int k = 0 ; k < (thread[index].nWorks);k++){
-		start_t = clock();
-		pi = pi + (pow(-1,k))/(2*k+1);
-		end_t = clock();
-		total_t += (double)(end_t - start_t) / CLOCKS_PER_SEC;
-		if (isExp){
+	
+	//for (int k = 0 ; k < (thread[threadIndex].nWorks);k++){
+
+	r = setjmp(thread[threadIndex].buff);
+	printf("merong\n");
+	printf("nWorks===>%d\n",thread[threadIndex].nWorks );
+	printf("k===>%d\n",thread[threadIndex].k);
+	if (thread[threadIndex].k< thread[threadIndex].nWorks){
+		//start_t = clock();
+		thread[threadIndex].pi = thread[threadIndex].pi + (pow(-1,thread[threadIndex].k ))/(2*thread[threadIndex].k +1);
+		printf("MY PI==>%.10f\n", thread[threadIndex].pi );
+		//end_t = clock();
+		//total_t += (double)(end_t - start_t) / CLOCKS_PER_SEC;
+		thread[threadIndex].k =thread[threadIndex].k+1;
+		if (thread[threadIndex].isExp){
 			//printf("total time= %lu\n", total_t);
-			if (total_t>=thread[index].quantum){
+			//if (total_t>=thread[threadIndex].quantum && threadIndex!=-1){
+			//if ( threadIndex!=-1){
 
-				r = setjmp(thread[index].buff);
 				printf("r= %d\n",r );
-				if (r==0){
-					
-					// if (fromThread==NULL) fromThread=threadIndex
-
-					int threadIndex = getThreadIndex(thread,nThreads,index);
-					printf("-------------threadIndex %d\n", threadIndex);
-					if (thread[threadIndex].isFirstTime==0){
-						printf("old=%d, new %d\n",index,threadIndex );
-						longjmp(thread[threadIndex].buff,1000+k);
-					}else{
-						thread[threadIndex].isFirstTime=0;
-						calculatePi(thread,threadIndex,nThreads,isExp);
-					}
+				printf("r index %d\n", threadIndex);
+				// if (fromThread==NULL) fromThread=threadIndex
+				if (NisFinish()!=1){
+					threadIndex = getThreadIndex();
 				}
-			}
+				printf("-------------2threadIndex %d\n", threadIndex);
+				
+				if (thread[threadIndex].isFirstTime==0){
+
+					//printf("old=%d, new %d\n",threadIndex,threadIndex );
+					
+					longjmp(thread[threadIndex].buff,thread[threadIndex].k);
+				}else{
+					thread[threadIndex].isFirstTime=0;
+					calculatePi();
+				}
+				
+				
+				// if (thread[threadIndex].keep){
+				// 	thread[threadIndex].keep=0;
+				// //	keep=0;
+					
+
+				// }else{
+				// 	thread[threadIndex].keep=1;
+				// 	printf("enabling keep variable\n");
+				// }
+			// }
 		}
 	}
-	 thread[index].pi = pi;
-	 thread[index].isFinish=1;
 
-	printf("pi for index, %d =%.10f\n",index,4* pi);
-	// int threadIndex = getThreadIndex(thread,nThreads,index);
-	// if (!isFinish(thread,nThreads)){
+	 // thread[threadIndex].pi = pi;
+	 thread[threadIndex].isFinish=1;
+	 printf("thread[%d]=%d\n",threadIndex, thread[threadIndex].isFinish);
+	printf("pi for index, %d =%.10f\n",threadIndex,4* thread[threadIndex].pi);
+	
+	if (NisFinish()>1){
+		threadIndex = getThreadIndex();
+		printf("entre!!!!\n");
+		printf("-------------3threadIndex %d\n", threadIndex);
+		if (thread[threadIndex].isFirstTime==0){
+			//printf("old out=%d, new out %d\n",index,threadIndex );
+			printf("1\n");
+			//usleep(100000000);
+			longjmp(thread[threadIndex].buff,thread[threadIndex].k );
+		}else{
+			printf("2\n");
+			//usleep(100000000);
+			thread[threadIndex].isFirstTime=0;
+			calculatePi();
+		}
+	}else if (NisFinish()==0){
+		printf("termine!\n");
+	}else{
+		printf("~~~~~~~~~~~~~~stop!!\n");
+		//last=1;
+		threadIndex = findLast();
+		printf("findlast= %d\n",threadIndex );
+		//threadIndex=-1;
+		
+		if (thread[threadIndex].isFirstTime==0){
+			//printf("old out=%d, new out %d\n",index,threadIndex );
+			printf("1\n");
+			//usleep(100000000);
+			longjmp(thread[threadIndex].buff,thread[threadIndex].k );
+		}else{
+			printf("2\n");
+			//usleep(100000000);
+			thread[threadIndex].isFirstTime=0;
+			calculatePi();
+		}
 
-	// 	if (thread[threadIndex].isFirstTime==0){
-	// 		printf("old1=%d, new1 %d\n",index,threadIndex );
-	// 		longjmp(thread[threadIndex].buff,1000);
-	// 	}
-	// }
+	}
 }
 
-int getThreadIndex(struct Thread* thread,int nThreads,int oldIndex){
+int getThreadIndex(){
 	while(1){
-		long tt = sumTickets(thread,nThreads,oldIndex);
+		long tt = sumTickets(thread,nThreads,threadIndex);
 		printf("totalTickets ====> %lu\n",tt);
 		long ticketNumber = myRandom(tt);
 		
-		printf("ticketNumber %ld\n",ticketNumber );
-		return chooseThread(thread,nThreads,ticketNumber,oldIndex);
+		printf("----------------ticketNumber %ld\n",ticketNumber );
+		return chooseThread(ticketNumber);
 	
 	}
 }
 
-void lottery (struct Thread* thread,int nThreads,int isExp){
+void lottery (){
 	if (nThreads>0){
 		
-		int threadIndex=-1;
+		//int threadIndex=-1;
 		// int fromThread;
 		// while (!isFinish(thread,nThreads)){
 			if (threadIndex==-1){
 
-				threadIndex = getThreadIndex(thread,nThreads,-1);
-				printf("------------threadIndex %d\n", threadIndex);
+				threadIndex = getThreadIndex();
+				printf("------------1threadIndex %d\n", threadIndex);
 			}
 			//thread[threadIndex].isFinish = 1;
 			
 			thread[threadIndex].isFirstTime=0;
-			calculatePi(thread,threadIndex,nThreads,isExp);
+			calculatePi();
+			// float pi = 0;
+			// int r;
+			// r = setjmp(thread[threadIndex].buff);
+			// while (r<50*thread[threadIndex].nWorks){
+			// 	pi = pi + (pow(-1,r))/(2*r+1);
+			// 	if (r>=thread[threadIndex].nWorks*50*0.1){
+			// 		threadIndex = getThreadIndex(thread,nThreads,threadIndex);
+			// 		printf("-------------2threadIndex %d\n", threadIndex);
+			// 		if (thread[threadIndex].isFirstTime==0){
+			// 			//printf("old=%d, new %d\n",index,threadIndex );
+			// 			longjmp(thread[threadIndex].buff,r);
+			// 		}else{
+			// 			thread[threadIndex].isFirstTime=0;
+			// 			r =0;
+			// 		}
+			// 	}
+			// } 
 			
 		
-
-			// printf("entre!\n");
-			// usleep(3000000);
-		// }
+		printf("me sali del while loop\n");
+			
 	}
 }
