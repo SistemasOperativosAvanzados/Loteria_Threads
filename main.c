@@ -314,6 +314,7 @@ int main(int argc, char *argv[])
     gtkBuilder = gtk_builder_new();
     gtk_builder_add_from_file(gtkBuilder, "LotterySchedulling2.glade", NULL);
     window = GTK_WIDGET(gtk_builder_get_object(gtkBuilder, "LotterySchedulling"));
+    gtk_window_set_default_size(GTK_WINDOW(window), 800, 700);
 
     btn_cancelar = GTK_WIDGET (gtk_builder_get_object (gtkBuilder, "btn_cancelar"));
     btn_procesar = GTK_WIDGET (gtk_builder_get_object (gtkBuilder, "btn_procesar"));
@@ -324,6 +325,8 @@ int main(int argc, char *argv[])
     spn_quantum = GTK_WIDGET (gtk_builder_get_object (gtkBuilder, "spn_quantum"));
     
     SRWindowThreads = GTK_WIDGET (gtk_builder_get_object (gtkBuilder, "SRWindowThreads"));
+    gtk_scrolled_window_set_min_content_width(GTK_SCROLLED_WINDOW(SRWindowThreads),600);
+    gtk_scrolled_window_set_min_content_width(GTK_SCROLLED_WINDOW(SRWindowThreads), 600);
     rb_expropiativo = GTK_WIDGET (gtk_builder_get_object (gtkBuilder, "rb_expropiativo"));
     rb_noExpropiativo = GTK_WIDGET (gtk_builder_get_object (gtkBuilder, "rb_noExpropiativo"));
 
