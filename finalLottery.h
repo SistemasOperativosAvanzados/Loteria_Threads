@@ -24,4 +24,5 @@ void calculatePi();
 int getThreadIndex();
 void lottery ();
 
+void createScreen(GtkWidget *grid, int totalThreads, struct Thread* thread, int modeExp);
 void starProcessLottery(int isExpropiative, int numThreads, int quantumUI,int* nWork, int* nTickets,char** names);

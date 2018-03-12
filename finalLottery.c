@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <setjmp.h>
 #include <time.h> 
+#include <gtk/gtk.h>
 
 struct Ticket {
 	char name[50];
@@ -20,7 +21,7 @@ struct Currency {
 };
 
 struct Thread{
-	char name[50];
+	char *name;
 	long nTickets;
 	int nWorks;
 	int isWorking;
@@ -33,6 +34,9 @@ struct Thread{
 	int keep;
 	int k;
 	float percentage;
+	GtkWidget *pgbThread;
+    GtkWidget *lblPi;
+
 };
 
 struct Thread* thread;
@@ -55,152 +59,116 @@ long sumTickets(struct Thread* thread,int nThreads,int oldIndex);
 int getThreadIndex();
 int findLast();
 
+//Variables New User Interface
+
+//Declare variables
+static GtkWidget *title;
+static GtkWidget *lblThread;
+static GtkWidget *lblNumThreads;
+static GtkWidget *lblMode;
+static GtkWidget *lblPi;
+static GtkWidget *pgbThread;
+static GtkWidget *btnContinue;
+
+GtkWidget *window, *grid;
+
 void starProcessLottery(int isExpropiative, int numThreads, int quantumUI,int* nWork, int* nTickets,char** names){
-	printf("Kathy\n");
 	int modeExp=0;
 	nThreads=0;	
 	
 	int quantum=0;
 	char *ptr;
 	int quatumIndex=0;
-	
-	
+	threadIndex =-1;
 	last=0;
 
 	modeExp = isExpropiative;
 	nThreads= numThreads;
 	printf("nThreads %d\n", nThreads);
-	nTickets = (int*) calloc(nThreads,sizeof(int));
-	nWork = (int*) calloc(nThreads,sizeof(int));
-	names = calloc(nThreads,sizeof(char*));
-	for (int i=0;i<nThreads;i++){
-		names[i] = calloc(25,sizeof(char));
-	}
 	quantum = quantumUI;
 
-	thread=createThread(nWork,nTickets,names,quantum,modeExp, nThreads);
-	//long totalTickets = sumTickets(nTickets,nThreads);
+	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+    g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
+    
+    grid = gtk_grid_new();
+    gtk_window_set_title (GTK_WINDOW(window), "Threads running... ");
+    
+    gtk_window_set_default_size(GTK_WINDOW(window), 500, 400);
+    gtk_container_add(GTK_CONTAINER(window), grid);
 
+	thread=createThread(nWork,nTickets,names,quantum,modeExp, nThreads);
+	createScreen(grid, nThreads, thread, modeExp);
 	lottery();
 	for (int i = 0 ; i < nThreads;i++){
 		printf("thread[%d]=%d\n",i,thread[i].isFinish );
 	}
 }
 
-// int main(int argc, char const *argv[])
-// {
-// 	/* code */
-// 	float seed = 2;
-// 	int max = 5;
-// 	int i = 0;
-//     readFile("threadFile");
 
-// 	return 0;
-// }
+//Funcion que pinta los threads en la pantalla
+void createScreen(GtkWidget *grid, int totalThreads, struct Thread* thread, int modeExp){
+    int count = 1;
+    title = gtk_label_new("Threads");
+    gtk_grid_attach(GTK_GRID(grid), title, 1,0,1,1); //Grid, componente, columna, fila, width, height
+    
+    lblNumThreads = gtk_label_new("Total de Threads:");
+    gtk_grid_attach(GTK_GRID(grid), lblNumThreads, 0,1,1,1);
+    char buffer[25];
+    snprintf(buffer, sizeof(buffer), "Numero de Threads: %d", totalThreads);
+    gtk_label_set_text(GTK_LABEL(lblNumThreads), buffer);
+    
+    if(modeExp == 0){
+        lblMode = gtk_label_new("Modo: No expropiativo");
+        gtk_grid_attach(GTK_GRID(grid), lblMode, 2,1,1,1);
+    }else{
+        lblMode = gtk_label_new("Modo: Expropiativo");
+        gtk_grid_attach(GTK_GRID(grid), lblMode, 2,1,1,1);
+    }
+    
+    for (int i=0; i<totalThreads; i++){
+        printf("Nombre del thread: %s\t count: %d",thread[i].name, i);
+        //usleep(10000);
+        lblThread = gtk_label_new("Tread:");
+        pgbThread = gtk_progress_bar_new();
+        thread[i].pgbThread = pgbThread;
+        
+        
+        gtk_grid_attach(GTK_GRID(grid), lblThread, 0,count+1,1,1);
+        char buffer1[25];
+        snprintf(buffer1, sizeof(buffer1), "Thread: %s ", thread[i].name, i);
+        gtk_label_set_text(GTK_LABEL(lblThread), buffer1);
+        gtk_grid_attach(GTK_GRID(grid), pgbThread, 1,count+1,1,1);
+        gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(pgbThread), 0.0);
+        
+        lblPi = gtk_label_new("Valor de Pi:");
+        gtk_grid_attach(GTK_GRID(grid), lblPi, 2,count+1,1,1);
+        
+        thread[i].lblPi= lblPi;
+        
+        count ++;
+    }
+    btnContinue = gtk_button_new_with_label("Continue");
+    g_signal_connect(btnContinue, "clicked", G_CALLBACK(lottery), NULL);
+    gtk_grid_attach(GTK_GRID(grid), btnContinue, 1,totalThreads+3,1,1);
+    gtk_widget_show_all(window);
+    gtk_main();
+    
+}
 
-void readFile(char* fileName){
-	FILE *ifp;
-	char *mode = "r";
-	int c;
-	int modeExp=0;
-	nThreads=0;
-	int* nTickets;
-	int nt=0;
-	int* nWork;
-	int nw=0;
-	int quantum=0;
-	char *ptr;
-	int quatumIndex=0;
-	char** names;
-	ifp = fopen(fileName, mode);
-	threadIndex =-1;
-	last=0;
-		if (ifp!=NULL){
-		c=fgetc(ifp);
-		int wordSize = 1;
-		char* word =(char*) calloc(wordSize,sizeof(char));
-		int lineNumber = 1;
-		while (c!=EOF){
-			if (c!=';'){
-				word[wordSize-1] = c;
-				wordSize++;
-				word=(char*)realloc(word,wordSize*sizeof(char));
-			}else{
-				if (lineNumber==1){					
-					int compareExp = strcmp(word,"Exp");
-					int compareNoExp = strcmp(word,"NoExp");					
-					if (compareExp == 0){
-						printf("Exp enabled\n");
-						modeExp=1;
-					}else if(compareNoExp == 0){
-						printf("No expropiativo \n");
-						modeExp=0;
-					}
-					printf("Modo exp %d \n", modeExp );
-					usleep(4000000);
-					fgetc(ifp);
-					
 
-				}else if(lineNumber==2){
-					//printf("entre!2\n");
-					nThreads=atoi(word);
-					printf("nThreads %d\n", nThreads);
-					nTickets = (int*) calloc(nThreads,sizeof(int));
-					nWork = (int*) calloc(nThreads,sizeof(int));
-					names = calloc(nThreads,sizeof(char*));
-					for (int i=0;i<nThreads;i++){
-						names[i] = calloc(25,sizeof(char));
-					}
-					fgetc(ifp);
-					quatumIndex=nThreads*2+3;
-				
-				}else if (lineNumber==quatumIndex){
-					quantum = strtol(word,&ptr,10);
-					printf("quantum=%d\n", quantum);
-				
-				}else{
-					if (wordSize>1){
-							printf("lineNumber %d\n",lineNumber );
-							
-							if(lineNumber%2!=0){
-								
-								strcpy(names[nt],strtok(word,"-"));
-								char *sub = strtok(NULL,"-");
-								//printf("sub= %s\n",sub );
-								nTickets[nt]= strtol(sub,&ptr,10);
-								printf("tickets[%d]-> %d\n",nt,nTickets[nt]);
-								nt++;
-							}else{
-								
-								strtok(word,">");
-								char *sub = strtok(NULL,">");
-								nWork[nw]= strtol(sub,&ptr,10);
-								printf("works[%d]-> %d\n",nw,nWork[nw]);
-								nw++;
-							}
-							
-						}else{
-							quantum = atoi(word);
-						}
-						
-						fgetc(ifp);
-				}
-				
-				lineNumber++;
-				wordSize=1;
-				word=(char*)calloc(wordSize,sizeof(char));
-			}
-   
-			c=fgetc(ifp);
-		}
-	}
-	thread=createThread(nWork,nTickets,names,quantum,modeExp, nThreads);
-	//long totalTickets = sumTickets(nTickets,nThreads);
 
-	lottery();
-	for (int i = 0 ; i < nThreads;i++){
-		printf("thread[%d]=%d\n",i,thread[i].isFinish );
-	}
+void setProgress(GtkWidget *pgbThread, float percentage, float pi, GtkWidget *lblPi){
+    printf("The percentage is: %.4f \n",percentage);
+    gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR (pgbThread), percentage);
+    //usleep(1000000);
+    
+    
+    char buffer2[25];
+    snprintf(buffer2, sizeof(buffer2), "Valor de Pi: %f", 4 * pi);
+    gtk_label_set_text(GTK_LABEL(lblPi), buffer2);
+    
+    gtk_widget_show_all(window);
+    while (g_main_context_iteration(NULL, FALSE));
 }
 
 long sumTickets(struct Thread* thread,int nThreads,int oldIndex){
@@ -231,7 +199,9 @@ struct Thread* createThread(int* nWork,int* nTickets,char** names,long quantum,i
 	char ptr[10];
 	threads = calloc (nThreads,sizeof(struct Thread));  
 	if (nThreads>0){
-		for (int x= 0; x <nThreads;x++){			
+		for (int x= 0; x <nThreads;x++){	
+			printf("Name %s\n", names[x] );
+			threads[x].name =calloc(25,sizeof(char));		
 			strcpy(threads[x].name,names[x]);
 			threads[x].nTickets = nTickets[x];
 			threads[x].nWorks = 50*nWork[x]; // remember here!!!
@@ -321,6 +291,9 @@ void calculatePi(){
 			
 			thread[threadIndex].pi = thread[threadIndex].pi + (pow(-1,thread[threadIndex].k ))/(2*thread[threadIndex].k +1);
 			thread[threadIndex].percentage = ((100 * (float)thread[threadIndex].k) / (float)thread[threadIndex].nWorks)/100;
+			//Pintar el thread activo
+   			setProgress(thread[threadIndex].pgbThread,thread[threadIndex].percentage, thread[threadIndex].pi,thread[threadIndex].lblPi);
+
 			printf(" im in thread %d\n", threadIndex );
 			printf(" MY PI==>%.10f\n", thread[threadIndex].pi );
 
