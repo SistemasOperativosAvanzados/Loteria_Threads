@@ -96,21 +96,9 @@ void readFile(char* fileName){
 				wordSize++;
 				word=(char*)realloc(word,wordSize*sizeof(char));
 			}else{
-				if (lineNumber==1){
-					printf("entre!1\n");
-					printf("Lei \n");
-					printf("%s\n", word );
-
+				if (lineNumber==1){					
 					int compareExp = strcmp(word,"Exp");
-					printf("Compare 1 \n");
-					printf("%d\n", compareExp );
-
-					int compareNoExp = strcmp(word,"NoExp");
-					printf("Compare 2 \n");
-					printf("%d\n", compareNoExp );
-					printf("sleeping...\n");
-					usleep(10000);
-
+					int compareNoExp = strcmp(word,"NoExp");					
 					if (compareExp == 0){
 						printf("Exp enabled\n");
 						modeExp=1;
@@ -118,7 +106,7 @@ void readFile(char* fileName){
 						printf("No expropiativo \n");
 						modeExp=0;
 					}
-					printf("sleeping...\n");
+					printf("Modo exp %d \n", modeExp );
 					usleep(4000000);
 					fgetc(ifp);
 					
@@ -330,15 +318,15 @@ void calculatePi(){
 					}
 					printf("-------------2 - threadIndex %d\n", threadIndex);					
 					if (thread[threadIndex].isFirstTime==0){
-
-						//printf("old=%d, new %d\n",threadIndex,threadIndex );
-						//	usleep(7000000);
 						longjmp(thread[threadIndex].buff,thread[threadIndex].k);
 					}else{
 						thread[threadIndex].isFirstTime=0;
 						calculatePi();
 					}
-				}		
+				}else{
+					calculatePi();					
+
+				}	
 			}else if(thread[threadIndex].isExp == 0){
 				//No expropiativo		
 				// Calculate percentage
@@ -360,6 +348,8 @@ void calculatePi(){
 						thread[threadIndex].isFirstTime=0;
 						calculatePi();
 					}
+				}else{
+					calculatePi();
 				}		 
 
 				
