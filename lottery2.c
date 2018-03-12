@@ -50,7 +50,7 @@ clock_t start_t, end_t, total_t=0;
 
 void lottery ();
 void setProgress(GtkWidget *pgbThread, float percentage, float pi, GtkWidget *lblPi);
-void CreateScreen(GtkWidget *grid, int totalThreads, struct Thread* thread);
+void CreateScreen(GtkWidget *grid, int totalThreads, struct Thread* thread, int modeExp);
 void readFile(char* fileName, GtkWidget *grid);
 struct Thread* createThread(int* nWork,int* nTickets,char** names,long quantum,int modeExp,int nThreads);
 int myRandom(long max);
@@ -98,7 +98,7 @@ int main(int argc, char **argv)
 }
 
 //Funcion que pinta los threads en la pantalla
-void CreateScreen(GtkWidget *grid, int totalThreads, struct Thread* thread){
+void CreateScreen(GtkWidget *grid, int totalThreads, struct Thread* thread, int modeExp){
     int count = 1;
     title = gtk_label_new("Threads");
     gtk_grid_attach(GTK_GRID(grid), title, 1,0,1,1); //Grid, componente, columna, fila, width, height
@@ -109,7 +109,7 @@ void CreateScreen(GtkWidget *grid, int totalThreads, struct Thread* thread){
     snprintf(buffer, sizeof(buffer), "Numero de Threads: %d", totalThreads);
     gtk_label_set_text(GTK_LABEL(lblNumThreads), buffer);
     
-    if(thread[threadIndex].isExp == 0){
+    if(modeExp == 0){
         lblMode = gtk_label_new("Modo: No expropiativo");
         gtk_grid_attach(GTK_GRID(grid), lblMode, 2,1,1,1);
     }else{
@@ -258,7 +258,7 @@ void readFile(char* fileName, GtkWidget *grid){
     
 	thread=createThread(nWork,nTickets,names,quantum,modeExp, nThreads);
     
-    CreateScreen(grid, nThreads, thread);
+    CreateScreen(grid, nThreads, thread, modeExp);
     
 	//long totalTickets = sumTickets(nTickets,nThreads);
     
