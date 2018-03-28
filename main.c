@@ -326,7 +326,6 @@ int main(int argc, char *argv[])
     
     SRWindowThreads = GTK_WIDGET (gtk_builder_get_object (gtkBuilder, "SRWindowThreads"));
     gtk_scrolled_window_set_min_content_width(GTK_SCROLLED_WINDOW(SRWindowThreads),600);
-    gtk_scrolled_window_set_min_content_width(GTK_SCROLLED_WINDOW(SRWindowThreads), 600);
     rb_expropiativo = GTK_WIDGET (gtk_builder_get_object (gtkBuilder, "rb_expropiativo"));
     rb_noExpropiativo = GTK_WIDGET (gtk_builder_get_object (gtkBuilder, "rb_noExpropiativo"));
 
