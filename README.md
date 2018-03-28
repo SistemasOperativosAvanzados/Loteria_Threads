@@ -9,9 +9,8 @@ El programa recibe los siguienes parametros:
 - Cantidad de boletos para cada thread (numero entero)
 - Tamanio del quantum en milisegundos (para la version expropiativa) o porcentaje del trabajo a realizar antes de ceder voluntariamente el procesador ( para la version no expropiativa).
 
-# Dependencias
 
-# Installation
+# Instalacion
 
 1. sudo apt-get install build-essential 
    Para actualizar e instalar las librerias correspondientes a C.
@@ -26,6 +25,16 @@ El programa recibe los siguienes parametros:
 # How to run?
 
 	Run make
+	Sino se requiere del comando 
 
+	gcc -Wall -g -o main main.c finalLottery.c `pkg-config --cflags --libs gtk+-3.0` -w -lm
 
-References
+# Ejemplos
+
+	Los archivos con nombre threadFile son los que se utilizan para cargar en la aplicacion y visualizar el progreso de cada thread.
+
+# Autores
+
+a. Sleyter Angulo Chavarria.
+b. Kathy Brenes Guerrero.
+c. Samuel Yoo.

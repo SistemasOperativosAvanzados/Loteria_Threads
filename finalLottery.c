@@ -34,6 +34,7 @@ struct Thread{
 	int keep;
 	int k;
 	float percentage;
+	float percentageWork;
 	GtkWidget *pgbThread;
     GtkWidget *lblPi;
 
@@ -168,7 +169,7 @@ void setProgress(GtkWidget *pgbThread, float percentage, float pi, GtkWidget *lb
     gtk_label_set_text(GTK_LABEL(lblPi), buffer2);
     
     gtk_widget_show_all(window);
-    while (g_main_context_iteration(NULL, FALSE));
+    g_main_context_iteration(NULL, FALSE);
 }
 
 long sumTickets(struct Thread* thread,int nThreads,int oldIndex){
@@ -213,7 +214,8 @@ struct Thread* createThread(int* nWork,int* nTickets,char** names,long quantum,i
 			threads[x].isFirstTime=1;
 			threads[x].keep=1;
 			threads[x].k=0;
-			threads[x].percentage =0.0;				
+			threads[x].percentage =0.0;	
+			threads[x].percentageWork = 0.0;			
 		}
 		return threads;
 	}
@@ -291,6 +293,7 @@ void calculatePi(){
 			
 			thread[threadIndex].pi = thread[threadIndex].pi + (pow(-1,thread[threadIndex].k ))/(2*thread[threadIndex].k +1);
 			thread[threadIndex].percentage = ((100 * (float)thread[threadIndex].k) / (float)thread[threadIndex].nWorks)/100;
+			thread[threadIndex].percentageWork = ((100 * (float)thread[threadIndex].k) / (float)thread[threadIndex].nWorks)/100;
 			//Pintar el thread activo
    			setProgress(thread[threadIndex].pgbThread,thread[threadIndex].percentage, thread[threadIndex].pi,thread[threadIndex].lblPi);
 
@@ -313,7 +316,7 @@ void calculatePi(){
 				if (total_t >=thread[threadIndex].quantum ){			
 					start_t,total_t,end_t=0;
 					printf("sleeping...\n");
-					usleep(10000);
+					//usleep(10000);
 					printf("r= %d\n",r );
 					printf("r index %d\n", threadIndex);					
 					if (NisFinish()!=1){
@@ -326,19 +329,18 @@ void calculatePi(){
 						thread[threadIndex].isFirstTime=0;
 						calculatePi();
 					}
-				}else{
-					calculatePi();					
+				}
 
-				}	
 			}else if(thread[threadIndex].isExp == 0){
 				//No expropiativo		
 				// Calculate percentage
 				printf("No expropiativo\n");
-				long threadPercentageQuantum = thread[threadIndex].quantum / 100;
-				if (thread[threadIndex].percentage <= threadPercentageQuantum && thread[threadIndex].percentage <= 1.0 ){	
-					thread[threadIndex].quantum += thread[threadIndex].quantum;
+				//percentageWork
+				float threadPercentageQuantum = thread[threadIndex].quantum / 100;
+				if (thread[threadIndex].percentageWork >= threadPercentageQuantum || thread[threadIndex].percentageWork == 1.0 ){	
 					//En el modo no expropiativo, los threads cederán voluntariamente
-					// el procesador después de realizar una fracción de su trabajo.						
+					// el procesador después de realizar una fracción de su trabajo.
+					//thread[threadIndex].quantum += thread[threadIndex].quantum;						
 					printf(" r = %d\n",r );
 					printf(" r index %d\n", threadIndex);					
 					if (NisFinish()!=1){
@@ -351,9 +353,7 @@ void calculatePi(){
 						thread[threadIndex].isFirstTime=0;
 						calculatePi();
 					}
-				}else{
-					calculatePi();
-				}		 
+				}	 
 				
 			}
 		}else{
